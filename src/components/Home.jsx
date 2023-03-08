@@ -148,17 +148,165 @@ export default class Home extends Component {
       },
    ];
 
+   state = {
+      showCart: false,
+      detailProduct: null,
+      cart: [],
+   };
+
+   handleShowCart = () => {
+      this.setState({
+         showCart: true,
+      });
+   };
+
+   handleHideCart = () => {
+      this.setState({
+         showCart: false,
+      });
+   };
+
+   handleHideProductDetail = () => {
+      this.setState({
+         detailProduct: null,
+      });
+   };
+
+   handleShowProductDetail = (prod) => {
+      this.setState({
+         detailProduct: prod,
+      });
+   };
+
+   handleAddToCart = (prod) => {
+      const cartClone = [...this.state.cart];
+
+      const foundedProduct = cartClone.find((item) => {
+         return item.product.id === prod.id;
+      });
+
+      if (!foundedProduct) {
+         const cartItem = {
+            product: prod,
+            quantity: 1,
+         };
+
+         cartClone.push(cartItem);
+      } else {
+         foundedProduct.quantity += 1;
+      }
+
+      this.setState(
+         {
+            cart: cartClone,
+         },
+         () => {
+            console.log(this.state.cart);
+         }
+      );
+   };
+
+   handleIncreaseCart = (id) => {
+      const cartClone = [...this.state.cart];
+
+      // find product from id
+      const foundedProduct = cartClone.find((item) => {
+         return item.product.id === id;
+      });
+
+      // increase quantity && quantity < inventory
+      if (foundedProduct.quantity < foundedProduct.product.quantity) {
+         foundedProduct.quantity += 1;
+      }
+
+      // change state
+      this.setState({
+         cart: cartClone,
+      });
+   };
+
+   handleDecreaseCart = (id) => {
+      const cartClone = [...this.state.cart];
+
+      // find product from id
+      const foundedProduct = cartClone.find((item) => {
+         return item.product.id === id;
+      });
+
+      // if quantity === 1 then delete product
+      if (foundedProduct.quantity === 1) {
+         const foundedIndex = cartClone.findIndex((item) => {
+            return item.product.id === id;
+         });
+
+         if (foundedIndex !== -1) {
+            cartClone.splice(foundedIndex, 1);
+         }
+      }
+
+      // if quantity > 1 then decrease quantity
+      else {
+         foundedProduct.quantity -= 1;
+      }
+
+      // change state
+      this.setState({
+         cart: cartClone,
+      });
+   };
+
+   handleDeleteFromCart = (id) => {
+      const cartClone = [...this.state.cart];
+
+      const foundedIndex = cartClone.findIndex((item) => {
+         return item.product.id === id;
+      });
+
+      if (foundedIndex !== -1) {
+         cartClone.splice(foundedIndex, 1);
+      }
+
+      this.setState({
+         cart: cartClone,
+      });
+   };
+
+   handlePayment = () => {
+      this.setState({
+         cart: [],
+      });
+   };
+
    render() {
       return (
-         <DataContext.Provider value={{}}>
+         <DataContext.Provider
+            value={{
+               data: this.data,
+               cartList: this.state.cart,
+               detailProduct: this.state.detailProduct,
+               onHandlePayment: this.handlePayment,
+               onHandleHideCart: this.handleHideCart,
+               onHandleAddToCart: this.handleAddToCart,
+               onHandleDecreaseCart: this.handleDecreaseCart,
+               onHandleIncreaseCart: this.handleIncreaseCart,
+               onHandleDeleteFromCart: this.handleDeleteFromCart,
+               onHandleShowProductDetail: this.handleShowProductDetail,
+               onHandleHideProductDetail: this.handleHideProductDetail,
+            }}
+         >
             <div>
                <h1 className="display-3">Shopping online</h1>
                <div>
-                  <button className="btn btn-success">Giỏ hàng (0)</button>
+                  <button
+                     onClick={this.handleShowCart}
+                     className="btn btn-success"
+                  >
+                     Giỏ hàng ({this.state.cart.length})
+                  </button>
                </div>
                <ProductList />
-               <ProductDetail />
-               <Cart />
+               {this.state.detailProduct && <ProductDetail />}
+               {this.state.showCart && <Cart />}
             </div>
          </DataContext.Provider>
       );
